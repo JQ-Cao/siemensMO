@@ -35,6 +35,19 @@ object BusLineInfo {
     }
   }
 
+  def getBusLineDetailInfo(line:RDD[String]):RDD[((String,Int),List[(Double,Double,String,Int)])] = {
+    line.map{
+      x=>val arr = x.replaceAll("\\]","").split(",")
+        ((arr(1),arr(6).toInt),(arr(5).toDouble,arr(4).toDouble,arr(3),arr(7).toInt))//((线路名,方向标志),(lng,lat,站点序列))
+    }.combineByKey(
+      x=> x::Nil,
+      (list:List[(Double,Double,String,Int)],x)=> x::list,
+      (list1:List[(Double,Double,String,Int)],list2:List[(Double,Double,String,Int)])=>list1:::list2
+    ).map{
+      x=> (x._1,x._2.sortBy(_._4))
+    }
+  }
+
   /**
     *
     * @param lines
@@ -43,7 +56,7 @@ object BusLineInfo {
   def getBusLineDirectionInfo(lines:RDD[String]): RDD[(String,((Double,Double),(Double,Double),Int))] ={
     lines.map{
       x=>val arr = x.replaceAll("\\]","").split(",")
-        ((arr(1),arr(?).toInt),(arr(5).toDouble,arr(4).toDouble,arr(7).toInt))//((线路名,方向标志),(lng,lat,站点序列))
+        ((arr(1),arr(6).toInt),(arr(5).toDouble,arr(4).toDouble,arr(7).toInt))//((线路名,方向标志),(lng,lat,站点序列))
     }.combineByKey(
       x=> x::Nil,
       (list:List[(Double,Double,Int)],x)=> x::list,
